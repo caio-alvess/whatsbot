@@ -4,8 +4,27 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  main: {},
-  preload: {},
+  main: {
+    build: {
+      externalizeDeps: true,
+      rollupOptions: {
+        output: {
+          format: 'es',
+          entryFileNames: '[name].js'
+        }
+      }
+    }
+  },
+  preload: {
+    build: {
+      externalizeDeps: true
+      // rollupOptions: {
+      //   output: {
+      //     format: 'es'
+      //   }
+      // }
+    }
+  },
   renderer: {
     resolve: {
       alias: {
