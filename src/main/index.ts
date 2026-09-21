@@ -2,8 +2,13 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { WhatsAppManager } from './whatsapp/manager'
+const whatsappManager = new WhatsAppManager()
+await whatsappManager.waitUntilReady()
 
-function createWindow(): void {
+// const user = new User(new Store())
+
+async function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -12,9 +17,25 @@ function createWindow(): void {
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false
     }
+  })
+
+  //whatsapp handles
+  whatsappManager.setWindow(mainWindow)
+
+  ipcMain.handle('whatsapp:list-sessions', () => {
+    return whatsappManager.listSessions()
+  })
+  ipcMain.handle('whatsapp:add-session', async () => {
+    return whatsappManager.addSession()
+  })
+  ipcMain.handle('whatsapp:remove-session', async (_event, id: string) => {
+    return whatsappManager.removeSession(id)
+  })
+  whatsappManager.restoreSessions().catch((err) => {
+    console.error('Failed to restore WhatsApp sessions:', err)
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -38,7 +59,7 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -49,10 +70,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
-  createWindow()
+  await createWindow()
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
