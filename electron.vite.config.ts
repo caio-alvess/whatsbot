@@ -18,11 +18,6 @@ export default defineConfig({
   preload: {
     build: {
       externalizeDeps: true
-      // rollupOptions: {
-      //   output: {
-      //     format: 'es'
-      //   }
-      // }
     }
   },
   renderer: {

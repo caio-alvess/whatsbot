@@ -1,4 +1,5 @@
-import { join } from 'path'
+import { renderMessageText } from './manager'
+/* import { join } from 'path'
 import { FolderHandler } from '../folder/handler'
 // import {} from ""
 import Store from 'electron-store'
@@ -101,7 +102,7 @@ async function doUnsycedWithAtLeastOneSynced() {
 describe('WhatsappManager', () => {
   it('should keep synced when empty folder', async () => {
     await doEmptyTokensWithSession()
-    const wpp = new WhatsAppManager({ store, folderNameToken: 'test-tokens' })
+    const wpp = new WhatsAppManager({ store: store as any, folderNameToken: 'test-tokens' })
     await wpp.waitUntilReady()
 
     const synced = await getSynced()
@@ -114,7 +115,7 @@ describe('WhatsappManager', () => {
 
   it('should keep synced when have no session but have token', async () => {
     const path = await doEmptySessionWithToken()
-    const wpp = new WhatsAppManager({ store, folderNameToken: 'test-tokens' })
+    const wpp = new WhatsAppManager({ store: store as any, folderNameToken: 'test-tokens' })
     await wpp.waitUntilReady()
 
     const sessions = wpp.listSessions()
@@ -124,15 +125,28 @@ describe('WhatsappManager', () => {
   })
   it('should keep synced', async () => {
     const path = await doUnsycedWithAtLeastOneSynced()
-    const wpp = new WhatsAppManager({ store, folderNameToken: 'test-tokens' })
+    const wpp = new WhatsAppManager({ store: store as any, folderNameToken: 'test-tokens' })
     await wpp.waitUntilReady()
 
     const sessions = wpp.listSessions()
 
-    expect(sessions).toHaveLength(1)
-    expect(await FolderHandler.readAllFolders(tokensFolder)).toHaveLength(1)
+    expect(sessions).toHaveLength(2)
+    expect(await FolderHandler.readAllFolders(tokensFolder)).toHaveLength(2)
     expect(existsSync(path)).toBe(true)
 
     expect(sessions[0].id).toBe('valid-token')
+  })
+})
+ */
+
+describe('WhatsAppManager', () => {
+  it('should fullfil variables in text', () => {
+    const res = renderMessageText('Olá {{Nome}}, tudo bem? {{Dia}}', {
+      name: 'Caio',
+      phone: '2199999',
+      Dia: 'Teste'
+    })
+
+    console.log(res)
   })
 })

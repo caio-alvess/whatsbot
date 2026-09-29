@@ -1,15 +1,13 @@
+import type { Clients } from '@shared/types'
 import { useEffect, useState, useCallback } from 'react'
 
-interface Session {
-  id: string
-  number: string | null
-  status: 'connecting' | 'connected' | 'disconnected'
-}
+export type QrStatus = 'pending' | 'expired' | 'timeout' | 'reading' | 'uninitialized'
 
 export function useWhatsApp() {
-  const [sessions, setSessions] = useState<Session[]>([])
+  const [sessions, setSessions] = useState<Clients[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pendingQr, setPendingQr] = useState<{ sessionId: string; qr: string } | null>(null)
+  const [qrStatus, setQrStatus] = useState<QrStatus>('uninitialized')
 
   useEffect(() => {
     window.api.whatsapp.listSessions().then((initial) => {
@@ -22,12 +20,16 @@ export function useWhatsApp() {
       // fallback: se a sessão do QR pendente já está conectada, limpa
       setPendingQr((prev) => {
         if (!prev) return prev
-        const session = updated.find((s: Session) => s.id === prev.sessionId)
+        const session = updated.find((s: Clients) => s.id === prev.sessionId)
         return session?.status === 'connected' ? null : prev
       })
     })
 
     const offQr = window.api.whatsapp.onQr((data) => setPendingQr(data))
+    const offQrStatus = window.api.whatsapp.onQrStatus((data) => {
+      if (data.status === 'expired') setPendingQr(null)
+      return setQrStatus(data.status)
+    })
 
     const offConnected = window.api.whatsapp.onConnected((data) => {
       setPendingQr((prev) => (prev?.sessionId === data.sessionId ? null : prev))
@@ -42,6 +44,7 @@ export function useWhatsApp() {
     return () => {
       offSessions()
       offQr()
+      offQrStatus()
       offConnected()
       offStatus()
     }
@@ -55,5 +58,5 @@ export function useWhatsApp() {
     await window.api.whatsapp.removeSession(id)
   }, [])
 
-  return { sessions, isLoading, pendingQr, addSession, removeSession }
+  return { qrStatus, sessions, isLoading, pendingQr, addSession, removeSession }
 }

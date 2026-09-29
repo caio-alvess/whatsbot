@@ -1,14 +1,16 @@
+import { Toaster } from '@/components/ui/sonner'
 import './assets/globals.css'
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
-import Layout from './components/patterns/Layout'
+import { WhatsAppProvider } from './contexts/whatsapp-context'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Layout>
+    <WhatsAppProvider>
+      <Toaster richColors position="top-center" />
       <App />
-    </Layout>
+    </WhatsAppProvider>
   </StrictMode>
 )

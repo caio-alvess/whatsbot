@@ -1,9 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { Contact } from '../main/whatsapp/manager'
 
 // Custom APIs for renderer
 const api = {
   whatsapp: {
+    sendText: (payload: { sessionId: string; text: string; contact: Contact }) =>
+      ipcRenderer.invoke('whatsapp:send-text', payload),
     listSessions: () => ipcRenderer.invoke('whatsapp:list-sessions'),
     addSession: () => ipcRenderer.invoke('whatsapp:add-session'),
     removeSession: (id: string) => ipcRenderer.invoke('whatsapp:remove-session', id),
@@ -18,6 +21,16 @@ const api = {
       ipcRenderer.on('whatsapp:qr', listener)
       return () => ipcRenderer.removeListener('whatsapp:qr', listener)
     },
+    onQrStatus: (
+      callback: (data: {
+        sessionId: string
+        status: 'pending' | 'expired' | 'timeout' | 'reading'
+      }) => void
+    ) => {
+      const listener = (_: unknown, data: any) => callback(data)
+      ipcRenderer.on('whatsapp:qr-status', listener)
+      return () => ipcRenderer.removeListener('whatsapp:qr-status', listener)
+    },
     onStatus: (callback: (data: { sessionId: string; status: string }) => void) => {
       const listener = (_: unknown, data: any) => callback(data)
       ipcRenderer.on('whatsapp:status', listener)
@@ -27,6 +40,53 @@ const api = {
       const listener = (_: unknown, data: any) => callback(data)
       ipcRenderer.on('whatsapp:sessions-updated', listener)
       return () => ipcRenderer.removeListener('whatsapp:sessions-updated', listener)
+    }
+  },
+  // sender: {
+  //   restorePendings: (clientsPhones: string[]): Promise<InitialProgress[]> =>
+  //     ipcRenderer.invoke('sender:restore', clientsPhones),
+
+  //   discardPendigns: (clientsPhones: string[]): Promise<void> =>
+  //     ipcRenderer.invoke('sender:discard-pendings', clientsPhones),
+
+  //   create: (data: {
+  //     clientsPhones: string[]
+  //     contacts: { name: string; phone: string }[]
+  //   }): Promise<InitialProgress[]> => ipcRenderer.invoke('sender:create', data),
+
+  //   start: (data: { text: string; clientsPhones: string[] }) =>
+  //     ipcRenderer.invoke('sender:start', data),
+
+  //   onStatus: (callback: (data: { sessionId: string; status: Status }) => void) => {
+  //     const listener = (_: unknown, data: any) => callback(data)
+  //     ipcRenderer.on('sender:status', listener)
+  //     return () => ipcRenderer.removeListener('sender:status', listener)
+  //   },
+
+  //   onProgress: (
+  //     callback: (data: {
+  //       clientId: string
+  //       status: {
+  //         success: number
+  //         failure: number
+  //         total: number
+  //       }
+  //     }) => void
+  //   ) => {
+  //     const listener = (_: unknown, data: any) => callback(data)
+  //     ipcRenderer.on('sender:progress', listener)
+  //     return () => ipcRenderer.removeListener('sender:progress', listener)
+  //   }
+  // },
+  sheet: {
+    preview: (file: { name: string; size: number; buf: ArrayBuffer }) =>
+      ipcRenderer.invoke('sheet:preview', file),
+
+    sheetToJSON<T = unknown>(file: ArrayBuffer) {
+      return ipcRenderer.invoke('sheet:to-json', file) as Promise<{
+        status: 'success' | 'error'
+        data: T[] | []
+      }>
     }
   }
 }

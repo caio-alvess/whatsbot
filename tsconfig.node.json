@@ -1,6 +1,12 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
-  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*", "src/services/**/*"],
+  "include": [
+    "electron.vite.config.*",
+    "src/main/**/*",
+    "src/shared/types/*",
+    "src/preload/**/*",
+    "src/services/**/*"
+  ],
   "compilerOptions": {
     "composite": true,
     "types": ["electron-vite/node", "vitest/globals"]

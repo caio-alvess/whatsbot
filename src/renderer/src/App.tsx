@@ -1,36 +1,45 @@
-import { useWhatsApp } from './hooks/useWhatsapp'
+import { ConnectScreen } from './components/connect-screen'
+import Layout from './components/patterns/Layout'
+import { useWhatsApp } from './contexts/whatsapp-context'
+
+import { Home } from './pages/home'
+
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
 
 function App(): React.JSX.Element {
-  const { sessions, isLoading, pendingQr, addSession } = useWhatsApp()
+  const { sessions, isLoading, pendingQr, addSession, qrStatus } = useWhatsApp()
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">Carregando...</div>
+  }
 
-  const hasConnectingSession = sessions.some((s) => s.status === 'connecting')
   const hasConnectedSession = sessions.some((s) => s.status === 'connected')
 
+  if (!hasConnectedSession) {
+    return (
+      <ConnectScreen
+        pendingQr={pendingQr}
+        qrStatus={qrStatus}
+        onConnect={addSession}
+        sessions={sessions}
+      />
+    )
+  }
+
   return (
-    <div className="action">
-      <div className="flex flex-col items-center gap-4">
-        {pendingQr ? (
-          <>
-            <img src={pendingQr.qr} alt="WhatsApp QR Code" className="w-64 h-64" />
-            <p>Scan with WhatsApp to connect</p>
-          </>
-        ) : hasConnectingSession ? (
-          <p>Reconnecting to WhatsApp...</p>
-        ) : hasConnectedSession ? (
-          <p>Connected ✅</p> // replace with your real connected UI / add-another-number button
-        ) : (
-          <button
-            disabled={hasConnectingSession}
-            onClick={addSession}
-            className="px-4 py-2 bg-green-600 text-white rounded"
-          >
-            Connect WhatsApp
-          </button>
-        )}
-      </div>
-    </div>
+    <HashRouter>
+      <QueryClientProvider client={queryClient}>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home sessions={sessions} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
+      </QueryClientProvider>
+    </HashRouter>
   )
 }
 

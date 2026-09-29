@@ -6,4 +6,3 @@ out
 *.log*
 tokens
 .vitest/
-test-tokens
