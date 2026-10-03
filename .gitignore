@@ -6,3 +6,4 @@ out
 *.log*
 tokens
 .vitest/
+resources/chrome-cache

@@ -1,4 +1,3 @@
-import { installAndGetChromiumPath } from 'electron-puppeteer-browsers'
 import { create, type Whatsapp } from '@wppconnect-team/wppconnect'
 import { randomUUID } from 'crypto'
 import { FolderHandler } from '../folder/handler'
@@ -9,6 +8,7 @@ import { ClientsDatabase } from '../db/tables/client.db'
 import { Clients } from '../db/database'
 import { PartialBy } from '../globals.types'
 import { Emitter } from '../utils/emitter'
+import { resolveChromeExecutablePath } from '../lib/resolve-chrome'
 
 interface SessionHandle {
   client: Whatsapp
@@ -22,8 +22,6 @@ export interface Contact {
 }
 
 const execPromise = promisify(exec)
-
-const chromePath = await installAndGetChromiumPath()
 
 export class WhatsAppManager {
   private clients = new Map<string, SessionHandle>()
@@ -198,7 +196,7 @@ export class WhatsAppManager {
           }
         },
         puppeteerOptions: {
-          executablePath: chromePath,
+          executablePath: resolveChromeExecutablePath(),
           headless: true,
           timeout: 60000, // Aumenta o tempo limite de lançamento para 60s
           userDataDir: `./tokens/${id}`, // Garante a pasta isolada por sessão
